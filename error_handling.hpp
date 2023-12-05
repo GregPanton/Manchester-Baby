@@ -1,3 +1,5 @@
+// File written by: Viktor Bratov
+//
 #ifndef CUSTOM_ERROR_HANDLING_HPP
 #define CUSTOM_ERROR_HANDLING_HPP
 
@@ -5,36 +7,31 @@
 #include <iostream>
 using namespace std;
 
-// Errors for label bank
 #define LARGE_VALUE_ERROR -101 // When the Long is > 32 bits large
 #define OUT_OF_MEMORY_RANGE_ERROR -102 // When the memory location is outside the bank of 32 locations
 #define VARIABLE_NAME_PRESENT_ERROR -103 // When a variable already exists with the same name
 #define VARIABLE_DOES_NOT_EXIST_ERROR -104 // When a variable doesn't exist
 #define NOT_ENOUGH_MEMORY_ERROR -105 // If there isn't enough memory locations to be allocated to all variables
 
-// Errors for instructions
-#define INSTRUCTION_DOES_NOT_EXIST_ERROR  -301 // Instruction does not exist in instruction Set
-#define OUTSIDE_OF_VECTOR_RANGE_ERROR -302 // When an item is requested from an invalid vector location
-#define LABEL_ALREADY_EXISTS_ERROR -303 // When you try to assign an instruction with a label that is already used
+#define INSTRUCTION_DOES_NOT_EXIST_ERROR  -201 // Instruction does not exist in instruction Set
+#define OUTSIDE_OF_VECTOR_RANGE_ERROR -202 // When an item is requested from an invalid vector location
+#define LABEL_ALREADY_EXISTS_ERROR -203 // When you try to assign an instruction with a label that is already used
+#define INPUT_TOO_BIG_ERROR -204 // When the input int/long is too large
 
-#define INPUT_TOO_BIG_ERROR -401 // When the input int/long is too large
-
-// Assembler errors
-#define NO_INSTRUCTION_TO_PROCESS_ERROR -501 // No instructions in vector to process
-#define UNABLE_TO_FIND_START_OR_END_ERROR -502 // Unable to find mnemonics START or/and END
-#define INPUT_PROCESS_FAILED_ERROR -503 // Some error with processing the input of split variables
-#define INVALID_INPUT_ERROR -504 // Invalid parameter given
-#define FILE_IO_ERROR -505 // Can't open file
-#define VARIABLE_USED_BUT_NOT_DEFINED_ERROR -506 // When a variable is used but not defined in the assembly
-#define MISMATCHED_VECTOR_ERROR -507 // When the lines configuring the mnemonics and function numbers aren't the same length
-#define LINE_NUMBER_TOO_LARGE_FOR_BITS_DEFINED_ERROR -508 // When the line number takes more bits than the number of bits allocated in it in custom_config.hpp
-#define FUNCTION_NUMBER_TOO_LARGE_FOR_BITS_DEFINED_ERROR -509 // When the function number takes more bits than the number of bits allocated in it in custom_config.hpp
-#define INVALID_CHAR_IN_CONFIG_ERROR -510 // When there's an invalid character in the config file, e.g., when you have a non-decimal number when defining the function numbers
-#define MISMATCHED_CONFIG_DETAILS_ERROR -511 // When parts of config don't match, mainly customInstructionCount and the number of mnemonics stated
+#define NO_INSTRUCTION_TO_PROCESS_ERROR -301 // No instructions in vector to process
+#define UNABLE_TO_FIND_START_OR_END_ERROR -302 // Unable to find mnemonics START or/and END
+#define INPUT_PROCESS_FAILED_ERROR -303 // Some error with processing the input of split variables
+#define INVALID_INPUT_ERROR -304 // Invalid parameter given
+#define FILE_IO_ERROR -305 // Can't open file
+#define VARIABLE_USED_BUT_NOT_DEFINED_ERROR -306 // When a variable is used but not defined in the assembly
+#define MISMATCHED_VECTOR_ERROR -307 // When the lines configuring the mnemonics and function numbers aren't the same length
+#define LINE_NUMBER_TOO_LARGE_FOR_BITS_DEFINED_ERROR -308 // When the line number takes more bits than the number of bits allocated in it in custom_config.hpp
+#define FUNCTION_NUMBER_TOO_LARGE_FOR_BITS_DEFINED_ERROR -309 // When the function number takes more bits than the number of bits allocated in it in custom_config.hpp
+#define INVALID_CHAR_IN_CONFIG_ERROR -310 // When there's an invalid character in the config file, e.g., when you have a non-decimal number when defining the function numbers
+#define MISMATCHED_CONFIG_DETAILS_ERROR -311 // When parts of config don't match, mainly customInstructionCount and the number of mnemonics stated
 
 
 void explainCustomError(int errorCode) {
-    // This just looks for the error and prints out the reason that error will occur.
     switch (errorCode) {
         case LARGE_VALUE_ERROR:
             cout << "Value too big for the memory size" << endl;
