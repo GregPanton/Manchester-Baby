@@ -1,10 +1,12 @@
+// File written by: Viktor Bratov
+//
 #ifndef CUSTOM_VARIABLE_LIST_HPP
 #define CUSTOM_VARIABLE_LIST_HPP
 
 #include <vector>
 #include "custom_variable.hpp"
-#include "custom_error_handling.hpp"
-#include "custom_config.hpp"
+#include "error_handling.hpp"
+#include "common_variables.hpp"
 
 using namespace std;
 
@@ -19,7 +21,6 @@ public:
     long getVariableData(string variableName);
     int getMemoryLocation(string variableName);
     int sizeOfVariableList();
-    void printVariableList();
     custom_variable getVariable(int vectorLocation);
 };
 
@@ -114,12 +115,6 @@ int custom_variableList::sizeOfVariableList() {
     return (int)variableContainer.size();
 }
 
-void custom_variableList::printVariableList() {
-    cout << "Variable List" << endl;
-    for (auto& variable : variableContainer) {
-        cout << "Variable Name: " << variable.getVariableName() << " | Variable Value: " << variable.getVariableValue() << " | Memory Address: " << variable.getMemoryLocation() << endl;
-    }
-}
 
 custom_variable custom_variableList::getVariable(int vectorLocation) {
     if (vectorLocation > (int)variableContainer.size() || vectorLocation < 0) {
@@ -128,5 +123,4 @@ custom_variable custom_variableList::getVariable(int vectorLocation) {
     return variableContainer.at(vectorLocation);
 }
 
-#endif // CUSTOM_VARIABLE_LIST_HPP
-
+#endif

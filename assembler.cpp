@@ -1,3 +1,5 @@
+// File written by: Viktor Bratov
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -5,10 +7,10 @@
 #include <sstream>
 #include <limits>
 #include <cstring>
-#include "custom_error_handling.hpp"
+#include "error_handling.hpp"
 #include "custom_variableList.hpp"
-#include "custom_sharedLibrary.hpp"
 #include "custom_instructionList.hpp"
+#include "common_variables.hpp"
 
 using namespace std;
 
@@ -21,6 +23,51 @@ const int arrayFunctionNo[8] = {0, 1, 2, 3, 4, 6, 7, 8};
 vector<string> mnemonics;
 vector<int> functionNumbers;
 
+
+string toBinary(long longInput) {
+    return bitset<32>(longInput).to_string();
+}
+
+
+string instructionToBinary(int inputInt) {
+    if (inputInt > 7) {
+        throw INPUT_TOO_BIG_ERROR;
+    }
+    return bitset<3>(inputInt).to_string();
+}
+
+
+string memoryLocationToBinary(int inputInt) {
+    if (inputInt > 31) {
+        throw INPUT_TOO_BIG_ERROR;
+    }
+    return bitset<5>(inputInt).to_string();
+}
+
+
+string intToBinary(int inputInt) {
+    string binary = bitset<32>(inputInt).to_string();
+    bool hitAOne = false;
+    string finalOutput = "";
+    // This loop removes any trailing 0s
+    for (auto &digit : binary) {
+        if (digit != '0') { // We wait until we get a digit that's a 1 before doing anything
+            finalOutput += digit;
+            hitAOne = true;
+        } else if (hitAOne) { // We accept all 1/0 after we hit the first 1
+            finalOutput += digit;
+        }
+    }
+    return finalOutput;
+}
+
+
+string reverseString(string stringIn) {
+    string temp = stringIn;
+    reverse(temp.begin(), temp.end()); // Reverses string
+    return temp;
+}
+
 void setup() {
     //places the mnemonic and function Numbers from their arrays into their vectors
     for (auto &item : arrayMnemonics) { // for each item in array
@@ -31,107 +78,7 @@ void setup() {
     }
 }
 
-void configMnemonicsAndFunctionNumbers(string configFile) {
-    //open file
-    ifstream reader(configFile);
 
-    //check it has opened correctly
-    if (!reader) {
-        cout << "Error opening config file" << endl;
-        throw FILE_IO_ERROR;
-    }
-
-    string line;
-    while (getline(reader, line)) {    // read file line by line
-        string option;
-        //gets the option out
-        for (auto &c : line) {
-            if (c == ':') {
-                break;
-            } else {
-                option += c;
-            }
-        }
-
-        if (option == "mnemonics") { //if we find the keyword
-            mnemonics.clear();
-            string newMnemonics = "";
-            bool startOfInput = false;
-            //This gets all the chars between the backets in the config file
-            for (auto &c : line) {
-                if (c == '[') {
-                    startOfInput = true;
-                } else if (startOfInput && c != ']') {
-                    newMnemonics += c;
-                } else if (c == ']') {
-                    break;
-                }
-            }
-            stringstream mnemonicsStream(newMnemonics);
-            string temp;
-            //splits out the mnemonics into the vector
-            while (getline(mnemonicsStream, temp, ' ')) {
-                mnemonics.push_back(temp); // place the mnemonics into vector
-            }
-        } else if (option == "functionNumbers") {
-            functionNumbers.clear();
-            string newFunctionNo = "";
-            bool startOfInput = false;
-            //This gets all the chars between the backets in the config file
-            for (auto &c : line) {
-                if (c == '[') {
-                    startOfInput = true;
-                } else if (startOfInput && c != ']') {
-                    newFunctionNo += c;
-                } else if (c == ']') {
-                    break;
-                }
-            }
-            stringstream functionNoStream(newFunctionNo);
-            string temp;
-            //splits function numbers into function number
-            while (getline(functionNoStream, temp, ' ')) {
-                try {
-                    functionNumbers.push_back(stoi(temp)); // place the mnemonics into vector
-                } catch (...) {
-                    throw INVALID_CHAR_IN_CONFIG_ERROR; // we find char that isn't a decimal in the option
-                }
-            }
-        }
-    }
-    // Checks if the size of both vectors are the same
-    if (mnemonics.size() != functionNumbers.size()) {
-        throw MISMATCHED_VECTOR_ERROR;
-    }
-
-    //checks if numberOfInstructionsConfig and number of mnemonics match
-    if (customInstructionCount != (int) mnemonics.size()) {
-        throw MISMATCHED_CONFIG_DETAILS_ERROR;
-    }
-}
-
-/**
- * Prints out config and the mnemonics and function Number combos
- */
-void printConfig() {
-    cout << "CONFIG:" << endl;
-    cout << "number Of Instructions Config: " << customInstructionCount << endl;
-    cout << "number Of Memory Locations Config: " << customMemoryLocationCount << endl;
-    cout << "bits Not User After Line No: " << customBitsNotUserAfterLineNo << endl;
-    cout << "bits Not Used After Function Number: " << customBitsNotUsedAfterFunctionNumber << endl;
-    cout << "bits Used For Line No: " << customBitsUsedForLineNo << endl;
-    cout << "bits Used For Function No: " << customBitsUsedForFunctionNo << endl;
-    cout << "MNEMONICS & FUNCTION NUMBERS:" << endl;
-    for (int loc = 0; loc < (int) mnemonics.size(); loc++) {
-        cout << mnemonics.at(loc) << " | " << functionNumbers.at(loc) << endl;
-    }
-}
-
-/**
- * Turns mnemonic into function numbers
- * @param mnemonic
- * @return the function number
- */
 int mnemonicToInt(const string &mnemonic) {
 
     // for each item in the mnemonics vector
@@ -148,12 +95,9 @@ int mnemonicToInt(const string &mnemonic) {
     throw INSTRUCTION_DOES_NOT_EXIST_ERROR;
 }
 
-/**
- * Takes the input assembly txt file and places the cleaned contents into the processedInput vector
- * @param txtFile the file to read into
- */
+
 void processInputFiles(const string &txtFile) {
-    cout << "Reading in file into Assembly Code hold" << endl;
+    cout << "reading input file" << endl;
 
     ifstream reader(txtFile);
 
@@ -169,7 +113,6 @@ void processInputFiles(const string &txtFile) {
 
     string line;
     while (getline(reader, line)) {
-        cout << "reading line: " << line << endl;
         string chunk = ""; //Used to temp hold chars as we process them
         vector<string> tempVector; // creates a temp vector for holding strings
         for (char &l : line) { //
@@ -200,11 +143,8 @@ void processInputFiles(const string &txtFile) {
     cout << "Read file Successful" << endl;
 }
 
-/**
- * Processes the assembly file in the processedInput Vector into variable and instruction containers
- */
+
 void processAssembly() {
-    cout << "Processing Assembly Code into instruction and symbol table" << endl;
 
     // check if there's stuff to process
     if (processedInput.empty()) {
@@ -218,11 +158,6 @@ void processAssembly() {
         string mnemonicName = "";
         string label = "";
         string varValue = "";
-        //Prints out the line we're on
-        for (auto &item : vectorTemp) {
-            cout << item << " | "; //prints out every item in vector
-        }
-
 
         if (find(mnemonics.begin(), mnemonics.end(), vectorTemp.at(0)) != mnemonics.end()) {
             // If we find a mnemonic in the first work
@@ -233,7 +168,6 @@ void processAssembly() {
                 mnemonicName = vectorTemp.at(0);
             }
             instructionContainer.addInstructions(variableName, mnemonicToInt(mnemonicName)); // place instruction
-            cout << "entered | ";
         } else if ((int) vectorTemp.size() > 1) {
             if (vectorTemp.at(1) == "VAR") {
                 // if we find a variable
@@ -245,7 +179,6 @@ void processAssembly() {
                 }
                 // if line contains variable
                 variableContainer.addVariable(mnemonicName, stoi(varValue)); // add variables
-                cout << "entered | ";
             } else if (find(mnemonics.begin(), mnemonics.end(), vectorTemp.at(1)) != mnemonics.end()) {
                 //if we find a mnemonic with a label
                 if (2 < (int) vectorTemp.size()) {
@@ -258,10 +191,8 @@ void processAssembly() {
                     label = vectorTemp.at(0);
                 }
                 instructionContainer.addInstructions(variableName, mnemonicToInt(mnemonicName), label); // place instruction
-                cout << "entered | ";
             }
         }
-        cout << endl;
     }
 
     // This assigns the memory locations of the instructions.
@@ -269,15 +200,11 @@ void processAssembly() {
     // This assigns the memory locations of the variables, from the last instructions
     // We bulk set the variable locations from the location after the instructions that will the size of the instruction Container +1
     variableContainer.bulkSetMemoryLocation((int) instructionContainer.getInstructionListSize() + 1);
-    cout << "Completed processing items into Instruction and Symbol table" << endl;
+    cout << "outputting machine-code successful" << endl;
 }
 
-/**
- * Re-asembles the Variable and Instruction containers into machine code
- * @param writeFile the file to output the machine code to.
- */
+
 void outputMachineCode(const string &writeFile) {
-    cout << "Starting output of machine code to text file" << endl;
     if (variableContainer.sizeOfVariableList() == 0 || instructionContainer.getInstructionListSize() == 0) {
         throw INPUT_PROCESS_FAILED_ERROR;
     }
@@ -297,7 +224,7 @@ void outputMachineCode(const string &writeFile) {
     string stringBuilder = ""; // holds string to place into machine code output
 
     // if the variables and instruction to output to machine code are
-    // less the the number of memory locations we start the first line as a 0s
+    // less than the number of memory locations we start the first line as a 0s
     if ((int) variableContainer.sizeOfVariableList() + (int) instructionContainer.getInstructionListSize() <
         customMemoryLocationCount - 1) {
         // we do a for loop for the total width of the memory
@@ -306,7 +233,6 @@ void outputMachineCode(const string &writeFile) {
             stringBuilder+='0';
         }
         outputFile << stringBuilder << endl; // output string to txt file
-        cout << "Outputting: " << stringBuilder << endl; // output line to console
         stringBuilder = "";
     }
 
@@ -357,31 +283,14 @@ void outputMachineCode(const string &writeFile) {
         }
 
         outputFile << stringBuilder << endl; //output line to file
-        cout << "Outputting: " << stringBuilder << endl;// output line to console
     }
 
     // for each variable in variable container
     for (int i = 0; i < variableContainer.sizeOfVariableList(); i++) {
         string stringBuilder = reverseString(toBinary(variableContainer.getVariable(i).getVariableValue()));
         outputFile << stringBuilder << endl;//output line to file
-        cout << "Outputting: " << stringBuilder << endl;// output line to console
     }
 
-}
-
-/**
- * Debugging tool to print out the processedInput vector
- */
-void printVectorLine() {
-    cout << "INPUT VECTOR" << endl;
-    cout << "=======================" << endl;
-    for (auto &i : processedInput) {
-        cout << endl;
-        for (auto &o : i) {
-            cout << o << "|";
-        }
-    }
-    cout << endl << "=======================" << endl;
 }
 
 int main(int argc, char *argv[]){
@@ -390,87 +299,21 @@ int main(int argc, char *argv[]){
         cout << "You need a min of 2 arguments" << endl;
         return -1;
     }
-    //run assembler with file input/output
-    if(argc == 3){
-        string inputFile = argv[1];
-        string outFile = argv[2];
-        try {
-            processInputFiles(inputFile);
-            processAssembly();
-            outputMachineCode(outFile);
-            return 0;
-        }catch(int& e){
-            cout << "Looks like you've hit an error in the assembler" << endl;
-            cout << "exception code: " << e << endl;
-            explainCustomError(e);
-            return 0;
-        }catch(exception& e){
-            cout << "The assembler has hit into an standered error" << endl;
-            cout << "Probably the assembler's programmer's fauly" << endl;
-            cout << e.what() << endl;
-            return 0;
-        }
+    string inputFile = argv[1];
+    string outFile = argv[2];
+    try {
+        processInputFiles(inputFile);
+        processAssembly();
+        outputMachineCode(outFile);
+        return 0;
+    }catch(int& e){
+        cout << "exception code: " << e << endl;
+        explainCustomError(e);
+        return 0;
+    }catch(exception& e){
+        cout << "Probably the assembler's programmer's fauly" << endl;
+        cout << e.what() << endl;
+        return 0;
     }
-    //run assembler with file input/output and a custom config
-    if(argc == 4){
-        string inputFile = argv[1];
-        string outFile = argv[2];
-        string configFile = argv[3];
-        try {
-            cout << "Updating config from Text file" << endl;
-            updateCustomConfiguration(configFile);
-            configMnemonicsAndFunctionNumbers(configFile);
-            cout << "Please check the new configuration" << endl;
-            printConfig();
-            cout << "Press Enter to Continue";
-            cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
-            processInputFiles(inputFile);
-            processAssembly();
-            outputMachineCode(outFile);
-            return 0;
-        }catch(int& e){
-            cout << "Looks like you've hit an error in the assembler" << endl;
-            cout << "exception code: " << e << endl;
-            explainCustomError(e);
-            return 0;
-        }catch(exception& e){
-            cout << "The assembler has hit into an standered error" << endl;
-            cout << "Probably the assembler's programmer's fauly" << endl;
-            cout << e.what() << endl;
-            return 0;
-        }
-    }
-    //run assembler with file input/output , custom config and dump all debug info to the console
-    if(argc == 5 && strncmp(argv[4], "-d", 2) == 0){
-        cout << "RUNNING WITH DEBUG INFO" << endl;
-        string inputFile = argv[1];
-        string outFile = argv[2];
-        string configFile = argv[3];
-        try {
-            cout << "Updating config from Text file" << endl;
-            updateCustomConfiguration(configFile);
-            configMnemonicsAndFunctionNumbers(configFile);
-            printConfig();
-            processInputFiles(inputFile);
-            printVectorLine();
-            processAssembly();
-            instructionContainer.printInstructionList();
-            variableContainer.printVariableList();
-            outputMachineCode(outFile);
-            return 0;
-        }catch(int& e){
-            cout << "Looks like you've hit an error in the assembler" << endl;
-            cout << "exception code: " << e << endl;
-            explainCustomError(e);
-            return 0;
-        }catch(exception& e){
-            cout << "The assembler has hit into an standered error" << endl;
-            cout << "Probably the assembler's programmer's fauly" << endl;
-            cout << e.what() << endl;
-            return 0;
-        }
-    }
-
-    cout << "Too Many Arguments/incorrect arguments" << endl;
-    return -1;
+    return 0;
 }

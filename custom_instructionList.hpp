@@ -1,11 +1,13 @@
+// File written by: Viktor Bratov
+//
 #ifndef CUSTOM_INSTRUCTION_LIST_HPP
 #define CUSTOM_INSTRUCTION_LIST_HPP
 
 #include "custom_instruction.hpp"
 #include <utility>
 #include <vector>
-#include "custom_error_handling.hpp"
-#include "custom_config.hpp"
+#include "error_handling.hpp"
+#include "common_variables.hpp"
 
 using namespace std;
 
@@ -20,7 +22,6 @@ public:
     void addInstructions(string variableName, int functionCode);
     void addInstructions(int functionCode);
     void bulkSetMemoryLocation(int fromMemoryLocation);
-    void printInstructionList();
     CustomInstruction getInstructionViaLabel(string label);
 };
 
@@ -64,15 +65,6 @@ void CustomInstructionList::bulkSetMemoryLocation(int fromMemoryLocation) {
 }
 
 
-void CustomInstructionList::printInstructionList() {
-    cout << "==========================" << endl;
-    cout << "Instruction Vector List" << endl;
-    for (auto &i : instructionList) { // For each object in the vector
-        cout << "Function Code: " << i.getFunctionCode() << " | Variable Used: " << i.getVariableName() << " | Memory Address: " << i.getMemoryLocation() << " | Label: " << i.getInstructionLabel() << endl;
-    }
-    cout << "==========================" << endl;
-}
-
 
 bool CustomInstructionList::doesLabelExist(string labelInput) {
     for (auto &item : instructionList) { // For each object in the vector
@@ -108,5 +100,5 @@ CustomInstruction CustomInstructionList::getInstructionViaLabel(string label) {
     throw INSTRUCTION_DOES_NOT_EXIST_ERROR; // Throw an error if we can't find a matching object
 }
 
-#endif // CUSTOM_INSTRUCTION_LIST_HPP
+#endif
 

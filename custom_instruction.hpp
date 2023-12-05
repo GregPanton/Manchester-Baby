@@ -1,10 +1,12 @@
+// File written by: Viktor Bratov
+//
 #ifndef CUSTOM_INSTRUCTION_HPP
 #define CUSTOM_INSTRUCTION_HPP
 
 #include <string>
 #include <utility>
-#include "custom_error_handling.hpp"
-#include "custom_config.hpp"
+#include "error_handling.hpp"
+#include "common_variables.hpp"
 
 using namespace std;
 
